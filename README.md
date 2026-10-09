@@ -119,6 +119,7 @@ Open your browser and navigate to: `http://localhost:5173`
 
 ## Team Roles & Contributions
 
-- **Person 1 (Database Architect)**: Designed ER schema, normalization, foreign key constraints, analytical views (`vw_current_occupancy`, `vw_department_load`), and operational triggers.
-- **Person 2 (Backend Engineer)**: Implemented Spring Boot REST APIs, `JdbcTemplate` queries, transaction isolation, and row-level locking concurrency protection.
-- **Person 3 (Frontend Engineer)**: Built the React dashboard, real-time metrics visualizations, patient intake workflow, and allocation management UI with Tailwind CSS.
+- **Person 1 (Database Architect)**: Designed the relational ER schema, normalization, foreign key constraints, analytical views (`vw_current_occupancy`, `vw_department_load`), and automated state transition triggers.
+- **Person 2 (Backend API & Concurrency Engineer)**: Developed the Spring Boot 3 REST API using `JdbcTemplate`, managing transactional boundaries and row-level locking (`SELECT ... FOR UPDATE`) to prevent race conditions.
+- **Person 3 (Frontend & UI/UX Engineer)**: Built the React + Vite dashboard with Tailwind CSS layouts and Lucide icons for triage monitoring, patient intake, and bed status views.
+- **Person 4 (QA, Testing & Integration Engineer)**: Wrote test cases, tested concurrent booking collision scenarios, validated frontend–backend API integration, and prepared project documentation.
