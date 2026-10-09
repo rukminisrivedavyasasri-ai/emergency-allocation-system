@@ -51,3 +51,16 @@ healthcare-emergency-allocation/
 4. **Discharge & Sanitization**:
    - Marking an allocation as `Discharged` automatically triggers the bed transition from `Occupied` $\rightarrow$ `Cleaning` and equipment from `Occupied` $\rightarrow$ `Available`.
 
+---
+
+## Setup & Installation
+
+### 1. Database Initialization (MySQL)
+
+Log in to MySQL and run the SQL scripts in this exact order:
+
+```sql
+SOURCE database/schema.sql;
+SOURCE database/triggers.sql;
+SOURCE database/views.sql;
+SOURCE database/seed.sql;
