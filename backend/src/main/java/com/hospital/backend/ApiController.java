@@ -18,14 +18,18 @@ public class ApiController {
     private JdbcTemplate jdbcTemplate;
 
     // 1. Dashboard: Current Occupancy View
-    @GetMapping("/dashboard/occupancy")
+   @GetMapping("/dashboard/occupancy")
     public ResponseEntity<?> getOccupancy() {
         try {
             List<Map<String, Object>> data = jdbcTemplate.queryForList("SELECT * FROM vw_current_occupancy");
             return ResponseEntity.ok(data);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            Throwable root = e;
+            while (root.getCause() != null) {
+                root = root.getCause();
+            }
+            return ResponseEntity.status(500).body(Map.of("error", root.getMessage()));
         }
     }
 
