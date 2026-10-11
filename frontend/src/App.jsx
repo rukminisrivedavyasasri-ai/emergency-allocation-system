@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Bed, Users, ShieldAlert, CheckCircle, RefreshCw, UserPlus, HeartPulse, LogOut } from 'lucide-react';
+import { Activity, Bed, Users, ShieldAlert, CheckCircle, RefreshCw, UserPlus, HeartPulse, LogOut, Wrench } from 'lucide-react';
 import Login from './Login';
 
 const API_BASE = 'http://localhost:8080/api';
@@ -8,7 +8,7 @@ export default function App() {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Dashboard & Navigation State
+  // Navigation & Data State
   const [activeTab, setActiveTab] = useState('dashboard');
   const [occupancy, setOccupancy] = useState([]);
   const [departmentLoad, setDepartmentLoad] = useState([]);
@@ -31,8 +31,14 @@ export default function App() {
   const [patientIdToMatch, setPatientIdToMatch] = useState('1');
   const [matchResult, setMatchResult] = useState(null);
 
+  // New Resource Form States
+  const [newBed, setNewBed] = useState({ departmentId: '2', bedNumber: '', bedType: 'ICU' });
+  const [newEquipment, setNewEquipment] = useState({ departmentId: '2', equipmentType: 'Ventilator' });
+  const [newDoctor, setNewDoctor] = useState({ departmentId: '2', name: '', specialization: 'Critical Care' });
+
   // Fetch all dashboard & live data
-  const fetchAllData = async () => {
+ // Fetch all dashboard & live data
+  const fetchAllData = async (manual = false) => {
     setLoading(true);
     try {
       const [occRes, loadRes, allocRes] = await Promise.all([
@@ -43,10 +49,14 @@ export default function App() {
       setOccupancy(await occRes.json());
       setDepartmentLoad(await loadRes.json());
       setActiveAllocations(await allocRes.json());
+      if (manual) {
+        setMessage('Dashboard data refreshed successfully!');
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
+      if (manual) setMessage('Failed to refresh data.');
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 400); // Guarantees a visible spin animation
     }
   };
 
@@ -70,7 +80,13 @@ export default function App() {
         })
       });
       const data = await res.json();
-      setMessage(data.message || 'Patient registered!');
+      const newId = data.patient_id || data.id || data.patientId;
+      if (newId) {
+        setPatientIdToMatch(String(newId));
+        setMessage(`Patient registered successfully! Assigned ID: ${newId}`);
+      } else {
+        setMessage(data.message || 'Patient registered successfully!');
+      }
       fetchAllData();
     } catch (err) {
       setMessage('Failed to register patient.');
@@ -132,7 +148,60 @@ export default function App() {
     }
   };
 
-  // If not signed in, show login page
+  // Add Bed
+  const handleAddBed = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/beds`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBed)
+      });
+      const data = await res.json();
+      setMessage(data.message);
+      setNewBed({ departmentId: '2', bedNumber: '', bedType: 'ICU' });
+      fetchAllData();
+    } catch (err) {
+      setMessage('Failed to add bed.');
+    }
+  };
+
+  // Add Equipment
+  const handleAddEquipment = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/equipment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEquipment)
+      });
+      const data = await res.json();
+      setMessage(data.message);
+      fetchAllData();
+    } catch (err) {
+      setMessage('Failed to add equipment.');
+    }
+  };
+
+  // Add Doctor
+  const handleAddDoctor = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/employees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newDoctor)
+      });
+      const data = await res.json();
+      setMessage(data.message);
+      setNewDoctor({ departmentId: '2', name: '', specialization: 'Critical Care' });
+      fetchAllData();
+    } catch (err) {
+      setMessage('Failed to add doctor.');
+    }
+  };
+
+  // If not signed in, show hospital login screen
   if (!isAuthenticated) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
@@ -147,7 +216,7 @@ export default function App() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchAllData}
+            onClick={() => fetchAllData(true)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm border border-slate-700 transition"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
@@ -187,6 +256,14 @@ export default function App() {
         >
           <Bed className="w-4 h-4" /> Active Allocations
         </button>
+        <button
+          onClick={() => setActiveTab('manage')}
+          className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
+            activeTab === 'manage' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Wrench className="w-4 h-4" /> Manage Resources
+        </button>
       </nav>
 
       {/* Global Status Banner */}
@@ -201,7 +278,6 @@ export default function App() {
       <main className="p-8 flex-1">
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
-            {/* Bed Occupancy Grid */}
             <div>
               <h2 className="text-lg font-semibold mb-4 text-slate-200 flex items-center gap-2">
                 <Bed className="text-blue-400 w-5 h-5" /> Current Bed Capacity (vw_current_occupancy)
@@ -230,7 +306,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Department Load Grid */}
             <div>
               <h2 className="text-lg font-semibold mb-4 text-slate-200 flex items-center gap-2">
                 <Users className="text-indigo-400 w-5 h-5" /> Department Resource Load (vw_department_load)
@@ -253,7 +328,6 @@ export default function App() {
 
         {activeTab === 'intake' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Register Patient Form */}
             <div className="bg-slate-800/60 border border-slate-700/80 p-6 rounded-xl">
               <h2 className="text-lg font-semibold mb-4 text-slate-200">Patient Emergency Intake</h2>
               <form onSubmit={handleRegister} className="space-y-4 text-sm">
@@ -315,8 +389,7 @@ export default function App() {
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white"
                     >
                       <option value="ICU">ICU</option>
-                      <option value="Isolation">Isolation</option>
-                      <option value="Trauma">Trauma</option>
+                      <option value="Emergency">Emergency</option>
                       <option value="General">General</option>
                     </select>
                   </div>
@@ -324,12 +397,14 @@ export default function App() {
                     <label className="block text-xs text-slate-400 mb-1">Equipment</label>
                     <select
                       value={formData.requiredEquipmentType}
-                      onChange={(e) => setFormData({ ...formData, requiredEquipmentType: e.target.value })}
+                      onChange={(e) => setNewEquipment({ ...formData, requiredEquipmentType: e.target.value })}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white"
                     >
                       <option value="Ventilator">Ventilator</option>
+                      <option value="Monitor">Monitor</option>
+                      <option value="Oxygen Cylinder">Oxygen Cylinder</option>
+                      <option value="ECG Machine">ECG Machine</option>
                       <option value="Defibrillator">Defibrillator</option>
-                      <option value="ECG Monitor">ECG Monitor</option>
                     </select>
                   </div>
                   <div>
@@ -341,8 +416,8 @@ export default function App() {
                     >
                       <option value="Critical Care">Critical Care</option>
                       <option value="Cardiology">Cardiology</option>
-                      <option value="Trauma Surgery">Trauma Surgery</option>
-                      <option value="General Medicine">General Medicine</option>
+                      <option value="Emergency Medicine">Emergency Medicine</option>
+                      <option value="Neurology">Neurology</option>
                     </select>
                   </div>
                 </div>
@@ -355,7 +430,6 @@ export default function App() {
               </form>
             </div>
 
-            {/* Smart Matching Box */}
             <div className="bg-slate-800/60 border border-slate-700/80 p-6 rounded-xl flex flex-col justify-between">
               <div>
                 <h2 className="text-lg font-semibold mb-4 text-slate-200">Smart Resource Allocation Matcher</h2>
@@ -437,6 +511,141 @@ export default function App() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Resource Inventory Management Tab */}
+        {activeTab === 'manage' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Add Bed Card */}
+            <div className="bg-slate-800/60 border border-slate-700/80 p-5 rounded-xl">
+              <h3 className="font-semibold text-white mb-3">Add Hospital Bed</h3>
+              <form onSubmit={handleAddBed} className="space-y-3 text-xs">
+                <div>
+                  <label className="text-slate-400 block mb-1">Bed Number</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. ICU-103"
+                    value={newBed.bedNumber}
+                    onChange={(e) => setNewBed({ ...newBed, bedNumber: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">Bed Type</label>
+                  <select
+                    value={newBed.bedType}
+                    onChange={(e) => setNewBed({ ...newBed, bedType: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  >
+                    <option value="ICU">ICU</option>
+                    <option value="General">General</option>
+                    <option value="Emergency">Emergency</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">Department</label>
+                  <select
+                    value={newBed.departmentId}
+                    onChange={(e) => setNewBed({ ...newBed, departmentId: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  >
+                    <option value="1">Emergency (Floor 1)</option>
+                    <option value="2">ICU (Floor 2)</option>
+                    <option value="3">Cardiology (Floor 3)</option>
+                    <option value="4">Neurology (Floor 3)</option>
+                  </select>
+                </div>
+                <button type="submit" className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-medium text-white transition">
+                  + Add Bed
+                </button>
+              </form>
+            </div>
+
+            {/* Add Equipment Card */}
+            <div className="bg-slate-800/60 border border-slate-700/80 p-5 rounded-xl">
+              <h3 className="font-semibold text-white mb-3">Add Medical Equipment</h3>
+              <form onSubmit={handleAddEquipment} className="space-y-3 text-xs">
+                <div>
+                  <label className="text-slate-400 block mb-1">Equipment Type</label>
+                  <select
+                    value={newEquipment.equipmentType}
+                    onChange={(e) => setNewEquipment({ ...newEquipment, equipmentType: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  >
+                    <option value="Ventilator">Ventilator</option>
+                    <option value="Monitor">Monitor</option>
+                    <option value="Oxygen Cylinder">Oxygen Cylinder</option>
+                    <option value="ECG Machine">ECG Machine</option>
+                    <option value="Defibrillator">Defibrillator</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">Department</label>
+                  <select
+                    value={newEquipment.departmentId}
+                    onChange={(e) => setNewEquipment({ ...newEquipment, departmentId: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  >
+                    <option value="1">Emergency</option>
+                    <option value="2">ICU</option>
+                    <option value="3">Cardiology</option>
+                    <option value="4">Neurology</option>
+                  </select>
+                </div>
+                <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded font-medium text-white transition">
+                  + Add Equipment
+                </button>
+              </form>
+            </div>
+
+            {/* Add Doctor Card */}
+            <div className="bg-slate-800/60 border border-slate-700/80 p-5 rounded-xl">
+              <h3 className="font-semibold text-white mb-3">Add Doctor / Specialist</h3>
+              <form onSubmit={handleAddDoctor} className="space-y-3 text-xs">
+                <div>
+                  <label className="text-slate-400 block mb-1">Doctor Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Dr. Rajesh Varma"
+                    value={newDoctor.name}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">Specialization</label>
+                  <select
+                    value={newDoctor.specialization}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, specialization: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  >
+                    <option value="Critical Care">Critical Care</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Emergency Medicine">Emergency Medicine</option>
+                    <option value="Neurology">Neurology</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">Department</label>
+                  <select
+                    value={newDoctor.departmentId}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, departmentId: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
+                  >
+                    <option value="1">Emergency</option>
+                    <option value="2">ICU</option>
+                    <option value="3">Cardiology</option>
+                    <option value="4">Neurology</option>
+                  </select>
+                </div>
+                <button type="submit" className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-medium text-white transition">
+                  + Add Doctor & Shift
+                </button>
+              </form>
+            </div>
           </div>
         )}
       </main>
