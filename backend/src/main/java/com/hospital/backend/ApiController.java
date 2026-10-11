@@ -19,9 +19,15 @@ public class ApiController {
 
     // 1. Dashboard: Current Occupancy View
     @GetMapping("/dashboard/occupancy")
-    public List<Map<String, Object>> getOccupancy() {
-        return jdbcTemplate.queryForList("SELECT * FROM vw_current_occupancy");
+public ResponseEntity<?> getOccupancy() {
+    try {
+        // your existing logic/query here
+        return ResponseEntity.ok(yourServiceOrQuery.getOccupancy());
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body("DATABASE ERROR: " + e.getMessage());
     }
+}
 
     // 2. Dashboard: Department Load View
     @GetMapping("/dashboard/load")
