@@ -446,7 +446,9 @@ export default function App() {
                     <label className="block text-xs text-slate-400 mb-1">Bed Needed</label>
                     <select
                       value={formData.requiredBedType}
-                      onChange={(e) => setFormData({ ...formData, requiredBedType: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, requiredBedType: e.target.value })
+                      }
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white"
                     >
                       <option value="ICU">ICU</option>
@@ -508,8 +510,8 @@ export default function App() {
                     type="number"
                     value={patientIdToMatch}
                     onChange={(e) => setPatientIdToMatch(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white w-32"
                     placeholder="Patient ID"
+                    className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white w-32"
                   />
                   <button
                     onClick={handleFindMatch}
@@ -525,9 +527,9 @@ export default function App() {
                     </p>
                     <div className="grid grid-cols-2 gap-2 text-slate-300 pt-2">
                       <p>
-                        Bed:{' '}
+                        Bed: ({matchResult.bed_type}){' '}
                         <span className="text-white font-semibold">
-                          {matchResult.bed_number} ({matchResult.bed_type})
+                          {matchResult.bed_number}
                         </span>
                       </p>
                       <p>
@@ -590,10 +592,12 @@ export default function App() {
                           Bed: <span className="font-semibold text-white">{alloc.bed_number}</span>
                         </p>
                         <p>
-                          Equipment: <span className="font-semibold text-white">{alloc.equipment_type}</span>
+                          Equipment:{' '}
+                          <span className="font-semibold text-white">{alloc.equipment_type}</span>
                         </p>
                         <p>
-                          Attending: <span className="font-semibold text-white">{alloc.doctor_name}</span>
+                          Attending:{' '}
+                          <span className="font-semibold text-white">{alloc.doctor_name}</span>
                         </p>
                       </div>
                     </div>
@@ -644,7 +648,9 @@ export default function App() {
                   <label className="text-slate-400 block mb-1">Department</label>
                   <select
                     value={newBed.departmentId}
-                    onChange={(e) => setNewBed({ ...newBed, departmentId: e.target.value })}
+                    onChange={(e) =>
+                      setNewBed({ ...newBed, departmentId: e.target.value })
+                    }
                     className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
                   >
                     <option value="1">Emergency (Floor 1)</option>
