@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Bed, Users, ShieldAlert, CheckCircle, RefreshCw, UserPlus, HeartPulse, LogOut, Wrench } from 'lucide-react';
+import {
+  Activity,
+  Bed,
+  Users,
+  ShieldAlert,
+  CheckCircle,
+  RefreshCw,
+  UserPlus,
+  HeartPulse,
+  LogOut,
+  Wrench
+} from 'lucide-react';
 import Login from './Login';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://emergency-backend-4iue.onrender.com/api';
 
 export default function App() {
   // Authentication State
@@ -32,12 +43,22 @@ export default function App() {
   const [matchResult, setMatchResult] = useState(null);
 
   // New Resource Form States
-  const [newBed, setNewBed] = useState({ departmentId: '2', bedNumber: '', bedType: 'ICU' });
-  const [newEquipment, setNewEquipment] = useState({ departmentId: '2', equipmentType: 'Ventilator' });
-  const [newDoctor, setNewDoctor] = useState({ departmentId: '2', name: '', specialization: 'Critical Care' });
+  const [newBed, setNewBed] = useState({
+    departmentId: '2',
+    bedNumber: '',
+    bedType: 'ICU'
+  });
+  const [newEquipment, setNewEquipment] = useState({
+    departmentId: '2',
+    equipmentType: 'Ventilator'
+  });
+  const [newDoctor, setNewDoctor] = useState({
+    departmentId: '2',
+    name: '',
+    specialization: 'Critical Care'
+  });
 
   // Fetch all dashboard & live data
- // Fetch all dashboard & live data
   const fetchAllData = async (manual = false) => {
     setLoading(true);
     try {
@@ -46,9 +67,11 @@ export default function App() {
         fetch(`${API_BASE}/dashboard/load`),
         fetch(`${API_BASE}/allocations/active`)
       ]);
-      setOccupancy(await occRes.json());
-      setDepartmentLoad(await loadRes.json());
-      setActiveAllocations(await allocRes.json());
+
+      if (occRes.ok) setOccupancy(await occRes.json());
+      if (loadRes.ok) setDepartmentLoad(await loadRes.json());
+      if (allocRes.ok) setActiveAllocations(await allocRes.json());
+
       if (manual) {
         setMessage('Dashboard data refreshed successfully!');
       }
@@ -56,7 +79,7 @@ export default function App() {
       console.error('Error fetching dashboard data:', err);
       if (manual) setMessage('Failed to refresh data.');
     } finally {
-      setTimeout(() => setLoading(false), 400); // Guarantees a visible spin animation
+      setTimeout(() => setLoading(false), 400);
     }
   };
 
@@ -158,7 +181,7 @@ export default function App() {
         body: JSON.stringify(newBed)
       });
       const data = await res.json();
-      setMessage(data.message);
+      setMessage(data.message || 'Bed added successfully');
       setNewBed({ departmentId: '2', bedNumber: '', bedType: 'ICU' });
       fetchAllData();
     } catch (err) {
@@ -176,7 +199,7 @@ export default function App() {
         body: JSON.stringify(newEquipment)
       });
       const data = await res.json();
-      setMessage(data.message);
+      setMessage(data.message || 'Equipment added successfully');
       fetchAllData();
     } catch (err) {
       setMessage('Failed to add equipment.');
@@ -193,7 +216,7 @@ export default function App() {
         body: JSON.stringify(newDoctor)
       });
       const data = await res.json();
-      setMessage(data.message);
+      setMessage(data.message || 'Doctor added successfully');
       setNewDoctor({ departmentId: '2', name: '', specialization: 'Critical Care' });
       fetchAllData();
     } catch (err) {
@@ -207,7 +230,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-vh-100 min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       {/* Header */}
       <header className="border-b border-slate-800 bg-slate-950/70 backdrop-blur px-8 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
@@ -235,7 +258,9 @@ export default function App() {
         <button
           onClick={() => setActiveTab('dashboard')}
           className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
-            activeTab === 'dashboard' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+            activeTab === 'dashboard'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Activity className="w-4 h-4" /> Live Dashboard
@@ -243,7 +268,9 @@ export default function App() {
         <button
           onClick={() => setActiveTab('intake')}
           className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
-            activeTab === 'intake' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+            activeTab === 'intake'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <UserPlus className="w-4 h-4" /> Patient Intake & Match
@@ -251,7 +278,9 @@ export default function App() {
         <button
           onClick={() => setActiveTab('allocations')}
           className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
-            activeTab === 'allocations' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+            activeTab === 'allocations'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Bed className="w-4 h-4" /> Active Allocations
@@ -259,7 +288,9 @@ export default function App() {
         <button
           onClick={() => setActiveTab('manage')}
           className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
-            activeTab === 'manage' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+            activeTab === 'manage'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Wrench className="w-4 h-4" /> Manage Resources
@@ -270,7 +301,12 @@ export default function App() {
       {message && (
         <div className="mx-8 mt-4 p-3 bg-blue-950/60 border border-blue-800 rounded-lg text-blue-200 text-sm flex items-center justify-between">
           <span>{message}</span>
-          <button onClick={() => setMessage('')} className="text-blue-400 hover:text-white font-bold text-xs">DISMISS</button>
+          <button
+            onClick={() => setMessage('')}
+            className="text-blue-400 hover:text-white font-bold text-xs"
+          >
+            DISMISS
+          </button>
         </div>
       )}
 
@@ -284,7 +320,10 @@ export default function App() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {occupancy.map((dept) => (
-                  <div key={dept.department_id} className="p-5 rounded-xl bg-slate-800/60 border border-slate-700/80 shadow-sm">
+                  <div
+                    key={dept.department_id}
+                    className="p-5 rounded-xl bg-slate-800/60 border border-slate-700/80 shadow-sm"
+                  >
                     <p className="font-bold text-base text-white">{dept.department_name}</p>
                     <p className="text-xs text-slate-400 mb-3">Total Beds: {dept.total_beds}</p>
                     <div className="space-y-1.5 text-xs">
@@ -312,12 +351,32 @@ export default function App() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {departmentLoad.map((dept, idx) => (
-                  <div key={idx} className="p-5 rounded-xl bg-slate-800/40 border border-slate-700/50">
+                  <div
+                    key={idx}
+                    className="p-5 rounded-xl bg-slate-800/40 border border-slate-700/50"
+                  >
                     <p className="font-bold text-white mb-2">{dept.department_name}</p>
                     <div className="space-y-1 text-xs text-slate-300">
-                      <p>Active Bed Allocations: <span className="font-semibold text-white">{dept.occupied_beds || 0}</span> / {dept.total_beds}</p>
-                      <p>Equipment in Use: <span className="font-semibold text-white">{dept.occupied_equipment || 0}</span> / {dept.total_equipment}</p>
-                      <p>Active Patients: <span className="font-semibold text-blue-400">{dept.active_patients || 0}</span></p>
+                      <p>
+                        Active Bed Allocations:{' '}
+                        <span className="font-semibold text-white">
+                          {dept.occupied_beds || 0}
+                        </span>{' '}
+                        / {dept.total_beds}
+                      </p>
+                      <p>
+                        Equipment in Use:{' '}
+                        <span className="font-semibold text-white">
+                          {dept.occupied_equipment || 0}
+                        </span>{' '}
+                        / {dept.total_equipment}
+                      </p>
+                      <p>
+                        Active Patients:{' '}
+                        <span className="font-semibold text-blue-400">
+                          {dept.active_patients || 0}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -361,11 +420,11 @@ export default function App() {
                       onChange={(e) => setFormData({ ...formData, triageScore: e.target.value })}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500"
                     >
-                      <option value="1">1 - Resuscitation (Immediate)</option>
-                      <option value="2">2 - Emergent</option>
-                      <option value="3">3 - Urgent</option>
-                      <option value="4">4 - Less Urgent</option>
-                      <option value="5">5 - Non-Urgent</option>
+                      <option value="1">1 (Immediate Resuscitation)</option>
+                      <option value="2">2 (Emergent)</option>
+                      <option value="3">3 (Urgent)</option>
+                      <option value="4">4 (Less Urgent)</option>
+                      <option value="5">5 (Non-Urgent)</option>
                     </select>
                   </div>
                 </div>
@@ -375,7 +434,9 @@ export default function App() {
                     type="text"
                     required
                     value={formData.conditionDescription}
-                    onChange={(e) => setFormData({ ...formData, conditionDescription: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, conditionDescription: e.target.value })
+                    }
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500"
                     placeholder="Severe respiratory distress"
                   />
@@ -397,7 +458,9 @@ export default function App() {
                     <label className="block text-xs text-slate-400 mb-1">Equipment</label>
                     <select
                       value={formData.requiredEquipmentType}
-                      onChange={(e) => setNewEquipment({ ...formData, requiredEquipmentType: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, requiredEquipmentType: e.target.value })
+                      }
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white"
                     >
                       <option value="Ventilator">Ventilator</option>
@@ -411,7 +474,9 @@ export default function App() {
                     <label className="block text-xs text-slate-400 mb-1">Specialization</label>
                     <select
                       value={formData.requiredSpecialization}
-                      onChange={(e) => setFormData({ ...formData, requiredSpecialization: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, requiredSpecialization: e.target.value })
+                      }
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white"
                     >
                       <option value="Critical Care">Critical Care</option>
@@ -432,7 +497,9 @@ export default function App() {
 
             <div className="bg-slate-800/60 border border-slate-700/80 p-6 rounded-xl flex flex-col justify-between">
               <div>
-                <h2 className="text-lg font-semibold mb-4 text-slate-200">Smart Resource Allocation Matcher</h2>
+                <h2 className="text-lg font-semibold mb-4 text-slate-200">
+                  Smart Resource Allocation Matcher
+                </h2>
                 <p className="text-xs text-slate-400 mb-4">
                   Runs the advanced matching query to find an available bed, matching equipment, and an on-duty specialist concurrently.
                 </p>
@@ -451,20 +518,40 @@ export default function App() {
                     Run Match Query
                   </button>
                 </div>
-
                 {matchResult && (
                   <div className="p-4 bg-slate-900/90 border border-indigo-700/60 rounded-xl space-y-2 text-xs">
-                    <p className="font-bold text-sm text-indigo-400">Match Found for {matchResult.patient_name}</p>
+                    <p className="font-bold text-sm text-indigo-400">
+                      Match Found for {matchResult.patient_name}
+                    </p>
                     <div className="grid grid-cols-2 gap-2 text-slate-300 pt-2">
-                      <p>Bed: <span className="text-white font-semibold">{matchResult.bed_number} ({matchResult.bed_type})</span></p>
-                      <p>Equipment: <span className="text-white font-semibold">{matchResult.equipment_type}</span></p>
-                      <p>Physician: <span className="text-white font-semibold">{matchResult.doctor_name}</span></p>
-                      <p>Specialization: <span className="text-white font-semibold">{matchResult.specialization}</span></p>
+                      <p>
+                        Bed:{' '}
+                        <span className="text-white font-semibold">
+                          {matchResult.bed_number} ({matchResult.bed_type})
+                        </span>
+                      </p>
+                      <p>
+                        Equipment:{' '}
+                        <span className="text-white font-semibold">
+                          {matchResult.equipment_type}
+                        </span>
+                      </p>
+                      <p>
+                        Physician:{' '}
+                        <span className="text-white font-semibold">
+                          {matchResult.doctor_name}
+                        </span>
+                      </p>
+                      <p>
+                        Specialization:{' '}
+                        <span className="text-white font-semibold">
+                          {matchResult.specialization}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
-
               {matchResult && (
                 <button
                   onClick={handleConfirmAllocation}
@@ -487,7 +574,10 @@ export default function App() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeAllocations.map((alloc) => (
-                  <div key={alloc.allocation_id} className="p-5 rounded-xl bg-slate-800/60 border border-slate-700/80 flex flex-col justify-between">
+                  <div
+                    key={alloc.allocation_id}
+                    className="p-5 rounded-xl bg-slate-800/60 border border-slate-700/80 flex flex-col justify-between"
+                  >
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-white">{alloc.patient_name}</span>
@@ -496,9 +586,15 @@ export default function App() {
                         </span>
                       </div>
                       <div className="space-y-1 text-xs text-slate-300">
-                        <p>Bed: <span className="font-semibold text-white">{alloc.bed_number}</span></p>
-                        <p>Equipment: <span className="font-semibold text-white">{alloc.equipment_type}</span></p>
-                        <p>Attending: <span className="font-semibold text-white">{alloc.doctor_name}</span></p>
+                        <p>
+                          Bed: <span className="font-semibold text-white">{alloc.bed_number}</span>
+                        </p>
+                        <p>
+                          Equipment: <span className="font-semibold text-white">{alloc.equipment_type}</span>
+                        </p>
+                        <p>
+                          Attending: <span className="font-semibold text-white">{alloc.doctor_name}</span>
+                        </p>
                       </div>
                     </div>
                     <button
@@ -557,7 +653,10 @@ export default function App() {
                     <option value="4">Neurology (Floor 3)</option>
                   </select>
                 </div>
-                <button type="submit" className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-medium text-white transition">
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-medium text-white transition"
+                >
                   + Add Bed
                 </button>
               </form>
@@ -571,7 +670,9 @@ export default function App() {
                   <label className="text-slate-400 block mb-1">Equipment Type</label>
                   <select
                     value={newEquipment.equipmentType}
-                    onChange={(e) => setNewEquipment({ ...newEquipment, equipmentType: e.target.value })}
+                    onChange={(e) =>
+                      setNewEquipment({ ...newEquipment, equipmentType: e.target.value })
+                    }
                     className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
                   >
                     <option value="Ventilator">Ventilator</option>
@@ -585,7 +686,9 @@ export default function App() {
                   <label className="text-slate-400 block mb-1">Department</label>
                   <select
                     value={newEquipment.departmentId}
-                    onChange={(e) => setNewEquipment({ ...newEquipment, departmentId: e.target.value })}
+                    onChange={(e) =>
+                      setNewEquipment({ ...newEquipment, departmentId: e.target.value })
+                    }
                     className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
                   >
                     <option value="1">Emergency</option>
@@ -594,7 +697,10 @@ export default function App() {
                     <option value="4">Neurology</option>
                   </select>
                 </div>
-                <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded font-medium text-white transition">
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded font-medium text-white transition"
+                >
                   + Add Equipment
                 </button>
               </form>
@@ -602,7 +708,7 @@ export default function App() {
 
             {/* Add Doctor Card */}
             <div className="bg-slate-800/60 border border-slate-700/80 p-5 rounded-xl">
-              <h3 className="font-semibold text-white mb-3">Add Doctor / Specialist</h3>
+              <h3 className="font-semibold text-white mb-3">Add Doctor Specialist</h3>
               <form onSubmit={handleAddDoctor} className="space-y-3 text-xs">
                 <div>
                   <label className="text-slate-400 block mb-1">Doctor Name</label>
@@ -619,7 +725,9 @@ export default function App() {
                   <label className="text-slate-400 block mb-1">Specialization</label>
                   <select
                     value={newDoctor.specialization}
-                    onChange={(e) => setNewDoctor({ ...newDoctor, specialization: e.target.value })}
+                    onChange={(e) =>
+                      setNewDoctor({ ...newDoctor, specialization: e.target.value })
+                    }
                     className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
                   >
                     <option value="Critical Care">Critical Care</option>
@@ -632,7 +740,9 @@ export default function App() {
                   <label className="text-slate-400 block mb-1">Department</label>
                   <select
                     value={newDoctor.departmentId}
-                    onChange={(e) => setNewDoctor({ ...newDoctor, departmentId: e.target.value })}
+                    onChange={(e) =>
+                      setNewDoctor({ ...newDoctor, departmentId: e.target.value })
+                    }
                     className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
                   >
                     <option value="1">Emergency</option>
@@ -641,7 +751,10 @@ export default function App() {
                     <option value="4">Neurology</option>
                   </select>
                 </div>
-                <button type="submit" className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-medium text-white transition">
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-medium text-white transition"
+                >
                   + Add Doctor & Shift
                 </button>
               </form>
