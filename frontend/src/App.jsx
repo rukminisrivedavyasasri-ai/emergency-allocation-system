@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Bed, Users, ShieldAlert, CheckCircle, RefreshCw, UserPlus, HeartPulse } from 'lucide-react';
+import { Activity, Bed, Users, ShieldAlert, CheckCircle, RefreshCw, UserPlus, HeartPulse, LogOut } from 'lucide-react';
+import Login from './Login';
 
 const API_BASE = 'http://localhost:8080/api';
 
 export default function App() {
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Dashboard & Navigation State
   const [activeTab, setActiveTab] = useState('dashboard');
   const [occupancy, setOccupancy] = useState([]);
   const [departmentLoad, setDepartmentLoad] = useState([]);
@@ -46,8 +51,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    if (isAuthenticated) {
+      fetchAllData();
+    }
+  }, [isAuthenticated]);
 
   // Register Patient
   const handleRegister = async (e) => {
@@ -125,6 +132,11 @@ export default function App() {
     }
   };
 
+  // If not signed in, show login page
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-vh-100 min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       {/* Header */}
@@ -139,6 +151,12 @@ export default function App() {
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm border border-slate-700 transition"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+          </button>
+          <button
+            onClick={() => setIsAuthenticated(false)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm border border-red-500/30 transition"
+          >
+            <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </header>
